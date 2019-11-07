@@ -46,7 +46,8 @@ type AuthHeader struct {
 type Client struct {
 	URL                    string               // URL of the server
 	UserAgent              string               // User-Agent header will be added to each request
-	Namespace              string               // SOAP Namespace
+	DefaultNamespace       string               // SOAP Default namespace (corresponds to `xmlns`-tag)
+	Namespace              string               // SOAP Namespace (corresponds to `xmlns:ns`-tag)
 	URNamespace            string               // Uniform Resource Namespace
 	ThisNamespace          string               // SOAP This-Namespace (tns)
 	ExcludeActionNamespace bool                 // Include Namespace to SOAP Action header
@@ -97,13 +98,14 @@ func setXMLType(v reflect.Value) {
 func doRoundTrip(c *Client, setHeaders func(*http.Request), in, out Message) error {
 	setXMLType(reflect.ValueOf(in))
 	req := &Envelope{
-		EnvelopeAttr: c.Envelope,
-		URNAttr:      c.URNamespace,
-		NSAttr:       c.Namespace,
-		TNSAttr:      c.ThisNamespace,
-		XSIAttr:      XSINamespace,
-		Header:       c.Header,
-		Body:         in,
+		EnvelopeAttr:  c.Envelope,
+		URNAttr:       c.URNamespace,
+		DefaultNSAttr: c.DefaultNamespace,
+		NSAttr:        c.Namespace,
+		TNSAttr:       c.ThisNamespace,
+		XSIAttr:       XSINamespace,
+		Header:        c.Header,
+		Body:          in,
 	}
 
 	if req.EnvelopeAttr == "" {
@@ -234,12 +236,13 @@ func (e *HTTPError) Error() string {
 
 // Envelope is a SOAP envelope.
 type Envelope struct {
-	XMLName      xml.Name `xml:"SOAP-ENV:Envelope"`
-	EnvelopeAttr string   `xml:"xmlns:SOAP-ENV,attr"`
-	NSAttr       string   `xml:"xmlns:ns,attr"`
-	TNSAttr      string   `xml:"xmlns:tns,attr,omitempty"`
-	URNAttr      string   `xml:"xmlns:urn,attr,omitempty"`
-	XSIAttr      string   `xml:"xmlns:xsi,attr,omitempty"`
-	Header       Message  `xml:"SOAP-ENV:Header"`
-	Body         Message  `xml:"SOAP-ENV:Body"`
+	XMLName       xml.Name `xml:"SOAP-ENV:Envelope"`
+	EnvelopeAttr  string   `xml:"xmlns:SOAP-ENV,attr"`
+	DefaultNSAttr string   `xml:"xmlns,attr,omitempty"`
+	NSAttr        string   `xml:"xmlns:ns,attr"`
+	TNSAttr       string   `xml:"xmlns:tns,attr,omitempty"`
+	URNAttr       string   `xml:"xmlns:urn,attr,omitempty"`
+	XSIAttr       string   `xml:"xmlns:xsi,attr,omitempty"`
+	Header        Message  `xml:"SOAP-ENV:Header"`
+	Body          Message  `xml:"SOAP-ENV:Body"`
 }
